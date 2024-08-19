@@ -6,7 +6,10 @@ local obj = {
     currotamt = 1.0,
 
     deleting = false,
-    deleteHighlightEnt = nil
+    deleteHighlightEnt = nil,
+
+    placingHighlightedEnt = nil,
+    placingColor = nil
 }
 distMult = 55.0
 nudgeOffsets = {x = 0.00, y = 0.00, z = 0.00}
@@ -78,15 +81,15 @@ end
 
 RegisterNetEvent("SDOP:StartPlacing")
 AddEventHandler("SDOP:StartPlacing", function()
-    local ped = PlayerPedId()
-    local pcoords = GetEntityCoords(ped)
+    local myped = PlayerPedId()
+    local pc = GetEntityCoords(myped)
     
     obj.curobj = 1
     obj.currot = {x = 0.0, y = 0.0, z = 0.0}
     obj.deleting = false
 
 	LoadPropDict(myObjs[obj.curobj].model)
-    obj.curobjdata = CreateObject(myObjs[obj.curobj].model, pcoords.x, pcoords.y, pcoords.z + 1, true, true, true)
+    obj.curobjdata = CreateObject(myObjs[obj.curobj].model, pc.x, pc.y, pc.z + 1, true, true, true)
 	SetEntityRotation(obj.curobjdata, obj.currot.x, obj.currot.y, obj.currot.z, 0, false)
 	SetEntityAlpha(obj.curobjdata, 153, false)
 	SetEntityAsMissionEntity(obj.curobjdata)
@@ -96,6 +99,10 @@ AddEventHandler("SDOP:StartPlacing", function()
     obj.is = true
     while obj.is do
         if not obj.deleting then
+            local ped = PlayerPedId()
+            local pcoords = GetEntityCoords(ped)
+            local canPlace = false
+
             local start,fin               = getCoordsInFrontOfCam(0,5000)
             local ray                     = StartShapeTestRay(start.x,start.y,start.z, fin.x,fin.y,fin.z, 1, (obj.curobjdata or PlayerPedId()), 5000)
             local oRay                    = StartShapeTestRay(start.x,start.y,start.z, fin.x,fin.y,fin.z, 16, (obj.curobjdata or PlayerPedId()), 5000)
@@ -115,6 +122,8 @@ AddEventHandler("SDOP:StartPlacing", function()
             local x,y,z = 0,0,0
             local targetPos
             local dist = Vdist(start.x, start.y, start.z, pos)
+
+
     
             if dist < distMult + 0.5 then
               if norm.x >  0.5  then x = x + max.x; end
@@ -215,9 +224,38 @@ AddEventHandler("SDOP:StartPlacing", function()
                 end
             end
 
-
+            if Vdist(pcoords.x, pcoords.y, pcoords.z, p) <= 15 then
+                canPlace = true
+            else
+                canPlace = false
+            end
+            if not obj.placingHighlightedEnt or (obj.placingHighlightedEnt ~= obj.curobjdata) then
+                if canPlace then
+                    obj.placingHighlightedEnt = obj.curobjdata
+                    obj.placingColor = "Green"
+                    SetEntityDrawOutline(obj.placingHighlightedEnt, true)
+                    SetEntityDrawOutlineColor(0, 255, 0, 200)
+                else
+                    obj.placingHighlightedEnt = obj.curobjdata
+                    obj.placingColor = "Red"
+                    SetEntityDrawOutline(obj.placingHighlightedEnt, true)
+                    SetEntityDrawOutlineColor(255, 0, 0, 200)
+                end
+            elseif obj.placingHighlightedEnt and (obj.placingHighlightedEnt == obj.curobjdata) then
+                if canPlace and obj.placingColor == "Red" then
+                    obj.placingColor = "Green"
+                    SetEntityDrawOutline(obj.placingHighlightedEnt, false)
+                    SetEntityDrawOutline(obj.placingHighlightedEnt, true)
+                    SetEntityDrawOutlineColor(0, 255, 0, 200)
+                elseif not canPlace and obj.placingColor == "Green" then
+                    obj.placingColor = "Red"
+                    SetEntityDrawOutline(obj.placingHighlightedEnt, false)
+                    SetEntityDrawOutline(obj.placingHighlightedEnt, true)
+                    SetEntityDrawOutlineColor(255, 0, 0, 200)
+                end
+            end
             if IsDisabledControlJustReleased(0, SDC.PlaceKeys.PlaceObj.InputNum) then
-                if Vdist(pcoords.x, pcoords.y, pcoords.z, GetEntityCoords(obj.curobjdata)) <= 15 then
+                if canPlace then
                     local objc = nil
                     local objr = nil
                     objc = GetEntityCoords(obj.curobjdata)
@@ -251,6 +289,8 @@ AddEventHandler("SDOP:StartPlacing", function()
                 obj.curobj = 0
                 obj.currot = {x = 0.0, y = 0.0, z = 0.0}
                 obj.deleting = false
+                obj.placingHighlightedEnt = nil
+                obj.placingColor = nil
             end
         else
             BeginTextCommandDisplayHelp("SDOP_OBJECTPLACER2")
@@ -320,6 +360,8 @@ AddEventHandler("SDOP:StartPlacing", function()
                     SetEntityDrawOutline(obj.deleteHighlightEnt, false)
                 end
                 obj.deleteHighlightEnt = nil
+                obj.placingHighlightedEnt = nil
+                obj.placingColor = nil
             end
         end
 
