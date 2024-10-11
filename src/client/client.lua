@@ -68,7 +68,7 @@ else
 				local myObjs2 = {}
 				for i=1, #SDC.ObjJobs[playerjob].Objects do
 					if myGrade >= SDC.ObjJobs[playerjob].Objects[i].ReqGrade then
-						table.insert(myObjs, SDC.ObjJobs[playerjob].Objects[i])
+						table.insert(myObjs2, SDC.ObjJobs[playerjob].Objects[i])
 					end
 				end
 				myObjs = myObjs2
@@ -98,9 +98,9 @@ AddEventHandler("SDOP:StartPlacing", function()
 
     obj.is = true
     while obj.is do
+        local ped = PlayerPedId()
+        local pcoords = GetEntityCoords(ped)
         if not obj.deleting then
-            local ped = PlayerPedId()
-            local pcoords = GetEntityCoords(ped)
             local canPlace = false
 
             local start,fin               = getCoordsInFrontOfCam(0,5000)
