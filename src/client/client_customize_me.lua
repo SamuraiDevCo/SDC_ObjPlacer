@@ -11,20 +11,36 @@ end
 function GetCurrentJob()
     if SDC.Framework == "qb-core" then
         local PlayerData = QBCore.Functions.GetPlayerData()
-        return PlayerData.job.name
+        if PlayerData and PlayerData.job and PlayerData.job.name then
+            return PlayerData.job.name
+        else
+            return ""
+        end
     elseif SDC.Framework == "esx" then
         local PlayerData = ESX.GetPlayerData()
-        return ESX.PlayerData.job.name
+        if PlayerData and PlayerData.job and PlayerData.job.name then
+            return PlayerData.job.name
+        else
+            return ""
+        end
     end
 end
 
 function GetCurrentJobGrade()
     if SDC.Framework == "qb-core" then
         local PlayerData = QBCore.Functions.GetPlayerData()
-        return PlayerData.job.grade.level
+        if PlayerData and PlayerData.job and PlayerData.job.grade then
+            return PlayerData.job.grade.level
+        else
+            return 0
+        end
     elseif SDC.Framework == "esx" then
         local PlayerData = ESX.GetPlayerData()
-        return ESX.PlayerData.job.grade
+        if PlayerData and PlayerData.job and PlayerData.job.grade then
+            return PlayerData.job.grade
+        else
+            return 0
+        end
     end
 end
 
